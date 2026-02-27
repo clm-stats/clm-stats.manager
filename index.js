@@ -1,17 +1,14 @@
-import { getEventData } from "#lib/gg";
-import build from "#lib/build";
+import express from "express";
+import paths from "#lib/paths";
 
-async function main() {
-  const data = await getEventData(
-    "tournament/midlane-melee-198/event/melee-singles",
-  );
-  console.log(data);
-  await build();
-}
+const PORT = process.env["PORT"] || 9182;
 
-main()
-  .then(() => process.exit())
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+const app = express();
+app.use(express.static(paths.npmRoot("static")));
+app.use(express.static(paths.npmRoot("dist")));
+app.get("/api/status", async (_req, res) => {
+  res.json({ actions: [1, 2, 3], events: {}, playerGroups: {} });
+});
+app.listen(PORT, () => {
+  console.log(" [| clm-stats manager |]  running on port", PORT);
+});
