@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import consts from "#lib/consts";
 
 function reloadStatus(res) {
   res.isLoading = true;
@@ -36,9 +37,23 @@ function useStatus() {
   return state[0];
 }
 
+const _c1 = `https://discord.com/oauth2/authorize?response_type=code`;
+const _c2 = `&client_id=${consts.clientId}&scope=${encodeURIComponent(consts.scope)}`;
+const _c3 = `&redirect_uri=${encodeURIComponent(consts.redirect_uri)}`;
+const connectLink = _c1 + _c2 + _c3;
+
 export default function App() {
   const st = useStatus();
   console.log(st.isLoading);
   console.log(st.actions);
-  return <div>Hello World</div>;
+  return (
+    <div>
+      <div className="prose">
+        <h3>Hello World</h3>
+      </div>
+      <a href={connectLink} className="btn btn-soft btn-accent">
+        login via oauth
+      </a>
+    </div>
+  );
 }
