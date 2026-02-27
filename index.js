@@ -1,10 +1,12 @@
-import * as gg from "./lib/gg.js";
+import { getEventData } from "#lib/gg";
+import build from "#lib/build";
 
 async function main() {
-  const data = await gg.getEventData(
+  const data = await getEventData(
     "tournament/midlane-melee-198/event/melee-singles",
   );
   console.log(data);
+  await build();
 }
 
 main()

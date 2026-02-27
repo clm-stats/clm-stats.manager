@@ -20,5 +20,8 @@
   "devDependencies": {
     "execa": "^9.6.1",
     "graphql-request": "^7.4.0"
+  },
+  "imports": {
+    "#lib/*": "./lib/*.js"
   }
 }
