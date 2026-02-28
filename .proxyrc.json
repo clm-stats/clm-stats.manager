@@ -1,5 +1,11 @@
 {
   "/api": {
     "target": "http://localhost:9182/"
+  },
+  "/favicon.ico": {
+    "target": "http://localhost:9182/"
+  },
+  "/iconByIdent": {
+    "target": "http://localhost:9182/"
   }
 }
