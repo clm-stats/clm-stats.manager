@@ -117,12 +117,12 @@ export default function App() {
       <div
         {...Cn(
           "container rounded-none min-h-screen mx-auto card relative",
-          "bg-base-100 shadow-xl mx-4 my-0",
+          "bg-base-200 shadow-xl mx-4 my-0",
         )}
       >
         <nav
           {...Cn(
-            "animate animate-once animate-fade-down navbar absolute z-20 w-full top-0 bg-accent/10 border-b-2 border-base-300 shadow-sm",
+            "animate animate-once animate-fade-down navbar absolute z-20 w-full top-0 bg-base-100 border-b-2 border-base-300 shadow-sm",
           )}
         >
           <div className="navbar-start join ml-1">
@@ -210,7 +210,7 @@ export default function App() {
         <div {...Cn("mt-16 mb-10 flex flex-col")}>{body}</div>
         <div
           {...Cn(
-            "absolute z-20 w-full bottom-0 h-10 bg-primary/10 border-t-2 border-base-300 shadow-sm",
+            "absolute z-20 w-full bottom-0 h-10 bg-base-200 border-t-2 border-base-300 shadow-sm",
             "animate animate-once animate-fade-up flex items-center px-4",
             { hidden: !authedIdent },
           )}
@@ -243,6 +243,17 @@ export default function App() {
               </span>
             </button>
           </div>
+          <button
+            className="btn btn-primary ml-8"
+            onClick={() =>
+              fetch("/api/test")
+                .then((res) => res.json())
+                .then(console.log)
+                .catch(console.error)
+            }
+          >
+            TEST
+          </button>
         </div>
       </div>
     </div>

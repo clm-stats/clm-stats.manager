@@ -1,8 +1,9 @@
 import express from "express";
+import { getIronSession } from "iron-session";
 import paths from "#lib/paths";
 import consts from "#lib/consts";
 import { getClientSecret, getSessionSecret } from "#lib/env";
-import { getIronSession } from "iron-session";
+import build from "#lib/build";
 
 const sessionConfig = {
   cookieName: "my_app_session",
@@ -33,6 +34,10 @@ const app = express();
 app.use(express.static(paths.npmRoot("static")));
 app.use(express.static(paths.npmRoot("dist")));
 app.use(express.static(paths.data.admin("static")));
+app.get("/api/test", async (req, res) => {
+  const data = await build();
+  res.json({ ok: true, data });
+});
 app.get("/api/status", async (req, res) => {
   const session = await getIronSession(req, res, sessionConfig);
   if (req.query.logout) {
