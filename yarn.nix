@@ -1850,6 +1850,14 @@
       };
     }
     {
+      name = "graphql___graphql_16.13.1.tgz";
+      path = fetchurl {
+        name = "graphql___graphql_16.13.1.tgz";
+        url  = "https://registry.yarnpkg.com/graphql/-/graphql-16.13.1.tgz";
+        sha512 = "gGgrVCoDKlIZ8fIqXBBb0pPKqDgki0Z/FSKNiQzSGj2uEYHr1tq5wmBegGwJx6QB5S5cM0khSBpi/JFHMCvsmQ==";
+      };
+    }
+    {
       name = "has_bigints___has_bigints_1.1.0.tgz";
       path = fetchurl {
         name = "has_bigints___has_bigints_1.1.0.tgz";

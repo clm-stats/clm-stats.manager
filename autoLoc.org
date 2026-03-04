@@ -1,0 +1,37 @@
+# gql query
+
+#+BEGIN_SRC graphql
+query TournamentQuery($q: TournamentQuery!) {
+		tournaments(query: $q){
+    	pageInfo {
+        total
+        page
+      }
+    	nodes {
+        events(filter:{videogameId:[1]}) {
+          slug
+        }
+      }
+		}
+	}
+#+END_SRC
+
+# gql vars
+#+BEGIN_SRC json
+{
+  "q": {
+    "page": 1,
+    "perPage":50,
+    "filter":{
+      "afterDate": 1767225600,
+      "beforeDate": 1772624044,
+      "videogameIds": [1],
+      "addrState": "IL",
+      "location": {
+        "distanceFrom": "41.881832, -87.623177",
+        "distance": "50mi"
+      }
+    }
+  }
+}
+#+END_SRC
