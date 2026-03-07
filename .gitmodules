@@ -1,0 +1,3 @@
+[submodule "clm-stats.app"]
+	path = clm-stats.app
+	url = git@github.com:clm-stats/clm-stats.app.git
