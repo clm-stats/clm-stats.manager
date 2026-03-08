@@ -1,4 +1,10 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  Component,
+  useContext,
+  createContext,
+} from "react";
 import cn from "classnames";
 import consts from "#lib/consts";
 import { FaUsersGear, FaFileCircleCheck } from "react-icons/fa6";
@@ -7,41 +13,8 @@ import { LuCalendarCog } from "react-icons/lu";
 import { ImStatsDots } from "react-icons/im";
 import { MdAdminPanelSettings } from "react-icons/md";
 
-function reloadStatus(res, logout = false) {
-  res.isLoading = true;
-  res.future = fetch(`/api/status${logout ? "?logout=1" : ""}`)
-    .then((res) => res.json())
-    .then((status) =>
-      Object.assign(res, { data: status, isLoading: false, fetchError: null }),
-    )
-    .catch((fetchError) => Object.assign(res, { isLoading: true, fetchError }))
-    .finally(() => {
-      for (const subId in res.subs) {
-        res.subs[subId](res);
-      }
-    });
-}
-
-const statusState = (() => {
-  const res = { subs: {}, nextSubId: 1, sub: () => {} };
-  reloadStatus(res);
-  res.reload = (logout = false) => reloadStatus(res, logout);
-  res.sub = (handle) => {
-    const subId = res.nextSubId++;
-    res.subs[subId] = handle;
-    return () => {
-      delete res.subs[subId];
-    };
-  };
-  return res;
-})();
-
-function useStatus() {
-  const [state, setState] = useState([statusState]);
-  const updateState = () => setState([statusState]);
-  useEffect(() => statusState.sub(updateState), []);
-  return state[0];
-}
+const XContext = createContext();
+const useX = () => useContext(XContext);
 
 const _c1 = `https://discord.com/oauth2/authorize?response_type=code`;
 const _c2 = `&client_id=${consts.clientId}&scope=${encodeURIComponent(consts.scope)}`;
@@ -61,29 +34,30 @@ if (urlIdent) {
 }
 const initialIdent = localStorage.getItem("authedIdent");
 
-export default function App() {
+function FullApp() {
   const [_tab, setTab] = useState();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const tab = new Set(["players", "season"]).has(_tab) ? _tab : "build";
-  const st = useStatus();
-  console.log(st.isLoading);
-  console.log(st.actions);
-  const authedIdent = !st.data
-    ? initialIdent
-    : st.data.user && st.data.user.ident;
-  const isAuthed = Boolean(st.data && authedIdent);
-  const isUnauthed = Boolean(st.data && !authedIdent);
-  // const isInitialLoad = !isAuthed && !isUnauthed;
+  const X = useX();
+  const authedIdent = !X.hasLoaded ? initialIdent : X.userIdent;
+  const isAuthed = Boolean(X.hasLoaded && authedIdent);
+  const isUnauthed = Boolean(X.hasLoaded && !authedIdent);
   const body = (() => {
     if (isAuthed) {
-      return <div>welcome, {st.data.user.discordName}</div>;
+      return <div>welcome, {X.userDiscordName}</div>;
     }
     if (isUnauthed) {
       return (
         <a
           href={connectLink}
           key="login-modal"
-          className="flex flex-col max-w-70 min-w-70 group-hover btn btn-soft btn-primary animate animate-once animate-jump-in self-center absolute min-h-60 max-h-60 top-[50%] translate-y-[-50%] rounded-box shadow-xl box border-1 border-base-300 items-stretch px-0 gap-0"
+          className={cn(
+            "flex flex-col max-w-70 min-w-70 group-hover btn",
+            "btn-soft btn-primary self-center absolute min-h-60 max-h-60",
+            "top-[50%] translate-y-[-50%] rounded-box shadow-xl box ",
+            "border-1 border-base-300 items-stretch px-0 gap-0",
+            "animate animate-once animate-jump-in",
+          )}
         >
           <div className="py-2 text-error">NO LOGIN FOUND</div>
           <div
@@ -225,17 +199,17 @@ export default function App() {
             >
               <img
                 className="border-1 border-primary/40 bg-info relative rounded-full overflow-hidden top-px left-px h-[calc(100%_-_2px)] w-[calc(100%_-_2px)]"
-                src={consts.getIconUrl(authedIdent)}
+                src={authedIdent && consts.getIconUrl(authedIdent)}
               />
             </div>
             <button
               onClick={() => {
-                st.reload(true);
+                X.reload(true);
               }}
             >
               <span className="relative">
                 <span className="text-center transition transition-opacity transition-colors duration-300 opacity-100 inline-block min-w-11 group-hover:opacity-0">
-                  {isAuthed ? st.data.user.discordName : ""}
+                  {X.userDiscordName}
                 </span>
                 <span className="text-left transition transition-opacity transition-colors duration-300 opacity-0 group-hover:opacity-100 absolute top-0 left-0 h-full flex items-center">
                   logout
@@ -258,4 +232,68 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+export default class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { refreshCount: 1 };
+    this.isLoading = true;
+  }
+
+  refresh() {
+    this.setState({ refreshCount: this.state.refreshCount + 1 });
+  }
+
+  handleStatus(status) {
+    this.isLoading = false;
+    this.fetchedStatus = [status];
+    this.refresh();
+  }
+
+  componentDidMount() {
+    fetch("/api/status")
+      .then((res) => res.json())
+      .then((status) => this.handleStatus(status))
+      .catch(console.error);
+  }
+
+  get hasLoaded() {
+    return !!this.fetchedStatus;
+  }
+
+  get user() {
+    return this.fetchedStatus && this.fetchedStatus[0].user;
+  }
+
+  get userIdent() {
+    return this.user && this.user.ident;
+  }
+  get userDiscordName() {
+    return this.user && this.user.discordName;
+  }
+
+  render() {
+    /*
+     const contextVal = {
+       isLoading: boolean,
+       hasLoaded: boolean,
+       user?: {},
+       spec: {},
+       lastBuildTime: int,
+     }
+     */
+    const contextVal = {
+      isLoading: this.isLoading,
+      hasLoaded: this.hasLoaded,
+      user: this.user,
+      userIdent: this.userIdent,
+      userDiscordName: this.userDiscordName,
+    };
+    return (
+      <XContext.Provider value={contextVal}>
+        <FullApp />
+      </XContext.Provider>
+    );
+  }
 }
