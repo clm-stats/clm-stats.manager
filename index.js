@@ -1,9 +1,14 @@
 import express from "express";
 import { getIronSession } from "iron-session";
+import _ from "#lib/_";
 import paths from "#lib/paths";
 import consts from "#lib/consts";
 import { getClientSecret, getSessionSecret } from "#lib/env";
 import build from "#lib/build";
+import { buildSpec } from "#lib/build/build-managed-state";
+import { fetchGGEvents } from "#lib/build/fetch-state-dependent-data";
+import buildLegacyData from "#lib/build/build-legacy-data";
+import { buildFullData } from "#lib/build/build-full-data";
 
 const sessionConfig = {
   cookieName: "my_app_session",
@@ -51,10 +56,25 @@ app.get("/api/status", async (req, res) => {
     res.json({});
     return;
   }
+  const { actions, spec } = await buildSpec();
+  const events = await fetchGGEvents(spec.eventSlugs);
+  const D = await buildFullData(await buildLegacyData(), events, spec, actions);
+  const resEvents = {};
+  for (const slug of spec.eventSlugs) {
+    resEvents[slug] = events[slug];
+    resEvents[slug].prEligible = true;
+  }
+  for (const slug of spec.ineligibleSlugs) {
+    if (resEvents[slug]) {
+      resEvents[slug].prEligible = false;
+    }
+  }
   res.json({
-    actions: [1, 2, 3],
-    events: {},
-    playerGroups: {},
+    actions,
+    undone: spec.undone,
+    identMasks: spec.identMasks,
+    eventIdentMasks: spec.eventIdentMasks,
+    events: resEvents,
     user: session.user,
   });
 });

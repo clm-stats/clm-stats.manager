@@ -7,8 +7,8 @@ import {
 } from "react";
 import cn from "classnames";
 import consts from "#lib/consts";
-import { FaUsersGear, FaFileCircleCheck } from "react-icons/fa6";
-// import { FaHome } from "react-icons/fa";
+import { FaUsersGear, FaFileCircleCheck, FaCircleXmark } from "react-icons/fa6";
+import { FaCheckCircle } from "react-icons/fa";
 import { LuCalendarCog } from "react-icons/lu";
 import { ImStatsDots } from "react-icons/im";
 import { MdAdminPanelSettings } from "react-icons/md";
@@ -34,17 +34,131 @@ if (urlIdent) {
 }
 const initialIdent = localStorage.getItem("authedIdent");
 
+function eventsList(X) {
+  return (
+    <div className="flex flex-col">
+      {Object.values(X.specEvents).map((event, ind) => {
+        const opts = { month: "2-digit", day: "2-digit" };
+        const dateStr = new Intl.DateTimeFormat("en-US", opts).format(
+          event.date * 1000,
+        );
+        const isOdd = ind % 2 === 1;
+        console.log(
+          event.tournamentName,
+          X.isPrEligible(event),
+          X.isEligibilityToggled(event),
+        );
+        return (
+          <div
+            key={event.id}
+            className={cn(
+              "text-sm font-bold mx-0 my-0 py-0 flex items-center",
+              isOdd ? "bg-base-300" : "bg-base-100",
+            )}
+          >
+            <div
+              className="group inline-flex pl-2 cursor-pointer relative h-10 py-2 mr-2"
+              onClick={() => X.toggleEligibility(event)}
+            >
+              <label
+                className={cn(
+                  "swap swap-rotate rounded-box shadow-sm",
+                  "border-gray-300 bg-white px-2",
+                  "dark:border-gray-700 dark:bg-black",
+                  "pointer-events-none relative",
+                )}
+              >
+                <div
+                  className={cn(
+                    "absolute opacity-0 bg-warning/50",
+                    "w-[calc(100%+0.5rem)] h-[calc(100%+0.25rem+1px)]",
+                    "-left-2 top-[calc(-0.25rem_-_1px)] rounded-box",
+                    "transition transition-opacity duration-300",
+                    "border-1 border-black dark:border-white",
+                    { "opacity-25": X.isEligibilityToggled(event) },
+                  )}
+                />
+
+                <input type="checkbox" checked={X.isPrEligible(event)} />
+                <div className="swap-on text-success">
+                  <FaCheckCircle />{" "}
+                </div>
+                <div className="swap-off text-error">
+                  <FaCircleXmark />{" "}
+                </div>
+              </label>
+              <span
+                className={cn(
+                  "opacity-20 group-hover:opacity-100",
+                  "absolute top-3 -left-6",
+                  {
+                    "opacity-100 text-warning italic":
+                      X.isEligibilityToggled(event),
+                  },
+                  X.isEligibilityToggled(event) ? "text-xs" : "text-[0.625rem]",
+                  "group-hover:text-xs",
+                )}
+              >
+                &nbsp;PR?
+              </span>
+            </div>
+            &nbsp;
+            <span className="opacity-50">{dateStr}</span>
+            &nbsp;
+            <span className="min-w-8 whitespace-nowrap overflow-hidden text-ellipsis">
+              {event.tournamentName}
+            </span>
+            &nbsp;
+            <span className="opacity-50 whitespace-nowrap overflow-hidden text-ellipsis min-w-4">
+              {event.name}
+            </span>
+            <span className="flex-1" />
+            &nbsp;
+            <span
+              className={cn(
+                "opacity-50 underline whitespace-nowrap cursor-pointer",
+                "hover:opacity-100",
+              )}
+            >
+              [0] 🎭 ⌄
+            </span>
+            &nbsp; &nbsp;
+          </div>
+        );
+      })}
+      <div className="h-10" />
+    </div>
+  );
+}
+
+// "card rounded-md shadow-md ml-4 shadow-neutral/30",
+// "border-1 border-gray-200 dark:border-gray-800",
 function FullApp() {
   const [_tab, setTab] = useState();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const tab = new Set(["players", "season"]).has(_tab) ? _tab : "build";
+  const tab = new Set(["players", "season"]).has(_tab) ? _tab : "season";
   const X = useX();
   const authedIdent = !X.hasLoaded ? initialIdent : X.userIdent;
   const isAuthed = Boolean(X.hasLoaded && authedIdent);
   const isUnauthed = Boolean(X.hasLoaded && !authedIdent);
   const body = (() => {
     if (isAuthed) {
-      return <div>welcome, {X.userDiscordName}</div>;
+      return (
+        <div className="flex flex-col absolute top-0 left-0 h-full w-full">
+          <div className="relative h-full">
+            <div
+              className={cn(
+                "absolute top-0 left-8 w-[calc(100%_-_4rem)] h-full z-20",
+                "border-1 rounded-box border-gray-200 dark:border-gray-800",
+                "pointer-events-none",
+              )}
+            ></div>
+            <div className={cn("max-h-full overflow-scroll px-8 relative")}>
+              <div className={cn()}>{eventsList(X)}</div>
+            </div>
+          </div>
+        </div>
+      );
     }
     if (isUnauthed) {
       return (
@@ -75,7 +189,16 @@ function FullApp() {
         </a>
       );
     }
-    return null;
+    console.log("loaders...");
+    return (
+      <div className="flex flex-col gap-2 p-8">
+        <div className="skeleton h-6 w-48" />
+        <div className="skeleton h-6 w-41" />
+        <div className="skeleton h-6 w-68" />
+        <div className="skeleton h-6 w-52" />
+        <div className="skeleton h-6 w-44" />
+      </div>
+    );
   })();
 
   useEffect(() => {
@@ -134,22 +257,6 @@ function FullApp() {
                 className={cn(
                   "transition transition-colors duration-300 join-item btn px-2",
                   {
-                    "bg-primary/20": tab === "build",
-                  },
-                )}
-                onClick={() => setTab("build")}
-              >
-                <a className="p-1 px-2 flex min-h-6 font-bold text-xs">
-                  <span className="h-4 flex items-center">
-                    <FaFileCircleCheck className="h-4" />
-                  </span>
-                  <span className="hidden lg:inline">&nbsp;Build Status</span>
-                </a>
-              </li>
-              <li
-                className={cn(
-                  "transition transition-colors duration-300 join-item btn px-2",
-                  {
                     "bg-primary/20": tab === "season",
                   },
                 )}
@@ -159,7 +266,7 @@ function FullApp() {
                   <span className="h-4 flex items-center">
                     <LuCalendarCog className="h-4" />
                   </span>
-                  <span className="hidden lg:inline">&nbsp;Manage Season</span>
+                  <span className="hidden lg:inline">&nbsp;Manage Events</span>
                 </a>
               </li>
               <li
@@ -181,10 +288,10 @@ function FullApp() {
             </ul>
           </div>
         </nav>
-        <div {...Cn("mt-16 mb-10 flex flex-col")}>{body}</div>
+        <div {...Cn("mt-22 mb-16 flex flex-col flex-1 relative")}>{body}</div>
         <div
           {...Cn(
-            "absolute z-20 w-full bottom-0 h-10 bg-base-200 border-t-2 border-base-300 shadow-sm",
+            "absolute z-20 w-full bottom-[2px] h-10 bg-base-200 border-t-2 border-base-300 shadow-sm",
             "animate animate-once animate-fade-up flex items-center px-4",
             { hidden: !authedIdent },
           )}
@@ -204,12 +311,14 @@ function FullApp() {
             </div>
             <button
               onClick={() => {
-                X.reload(true);
+                X.logout();
               }}
             >
               <span className="relative">
                 <span className="text-center transition transition-opacity transition-colors duration-300 opacity-100 inline-block min-w-11 group-hover:opacity-0">
-                  {X.userDiscordName}
+                  {X.userDiscordName || (
+                    <div className="skeleton h-4 w-10 relative top-[0.25rem] left-[0.375rem]" />
+                  )}
                 </span>
                 <span className="text-left transition transition-opacity transition-colors duration-300 opacity-0 group-hover:opacity-100 absolute top-0 left-0 h-full flex items-center">
                   logout
@@ -217,17 +326,6 @@ function FullApp() {
               </span>
             </button>
           </div>
-          <button
-            className="btn btn-primary ml-8"
-            onClick={() =>
-              fetch("/api/test")
-                .then((res) => res.json())
-                .then(console.log)
-                .catch(console.error)
-            }
-          >
-            TEST
-          </button>
         </div>
       </div>
     </div>
@@ -239,6 +337,7 @@ export default class App extends Component {
     super(props);
     this.state = { refreshCount: 1 };
     this.isLoading = true;
+    this.eventEligibilityToggles = new Set([]);
   }
 
   refresh() {
@@ -251,26 +350,65 @@ export default class App extends Component {
     this.refresh();
   }
 
-  componentDidMount() {
-    fetch("/api/status")
+  fetchStatus(logout = false) {
+    const shouldRefresh = !this.isLoading;
+    this.isLoading = true;
+    fetch(`/api/status${logout ? "?logout=1" : ""}`)
       .then((res) => res.json())
       .then((status) => this.handleStatus(status))
       .catch(console.error);
+    if (shouldRefresh) {
+      this.refresh();
+    }
+  }
+
+  componentDidMount() {
+    this.fetchStatus();
   }
 
   get hasLoaded() {
     return !!this.fetchedStatus;
   }
 
+  onStatus(f) {
+    return this.fetchedStatus && f(this.fetchedStatus[0]);
+  }
+
   get user() {
-    return this.fetchedStatus && this.fetchedStatus[0].user;
+    return this.onStatus((s) => s.user);
   }
 
   get userIdent() {
     return this.user && this.user.ident;
   }
+
   get userDiscordName() {
     return this.user && this.user.discordName;
+  }
+
+  get builtActions() {
+    return this.onStatus((s) => s.actions) || [];
+  }
+
+  get specEvents() {
+    return this.onStatus((s) => s.events) || {};
+  }
+
+  isEligibilityToggled(event) {
+    console.log("toggles", [...this.eventEligibilityToggles]);
+    return this.eventEligibilityToggles.has(event.id);
+  }
+
+  toggleEligibility(event) {
+    console.log("TOGGLING EVENT ELIGIBILITY");
+    if (this.isEligibilityToggled(event)) {
+      console.log("deleting...");
+      this.eventEligibilityToggles.delete(event.id);
+    } else {
+      console.log("adding...");
+      this.eventEligibilityToggles.add(event.id);
+    }
+    this.refresh();
   }
 
   render() {
@@ -289,6 +427,16 @@ export default class App extends Component {
       user: this.user,
       userIdent: this.userIdent,
       userDiscordName: this.userDiscordName,
+      builtActions: this.builtActions,
+      specEvents: this.specEvents,
+      isEligibilityToggled: (event) => this.isEligibilityToggled(event),
+      toggleEligibility: (event) => this.toggleEligibility(event),
+      isPrEligible: (event) =>
+        (this.isEligibilityToggled(event) ? (a) => !a : (a) => a)(
+          event.prEligible,
+        ),
+      logout: () => this.fetchStatus(true),
+      reload: () => this.fetchStatus(),
     };
     return (
       <XContext.Provider value={contextVal}>
