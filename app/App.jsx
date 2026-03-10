@@ -354,7 +354,8 @@ function FullApp() {
             )}
             {!X.build || !X.build.lastHash ? null : (
               <a
-                href={`https://github.com/clm-stats/clm-stats.github.io/#${X.build.lastHash}`}
+                href={`https://github.com/clm-stats/clm-stats.github.io/commit/${X.build.lastHash}`}
+                target={"_blank"}
                 className="btn btn-link link"
               >
                 #{X.build.lastHash}
