@@ -1,7 +1,7 @@
 import build from "#lib/build";
 
 async function main() {
-  await build();
+  await build.startBuild();
 }
 
 main()

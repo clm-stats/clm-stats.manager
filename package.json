@@ -17,8 +17,8 @@
     "_v": "cross-var cross-env VITE_PORT=$PORT VITE_CLM_STATS_DISCORD_CLIENT_ID=$CLM_STATS_DISCORD_CLIENT_ID vite",
     "clean:dist": "rimraf ./dist",
     "clean": "run-p clean:*",
-    "dev:fe": "run-s \"_v -- dev\"",
-    "dev:be": "nodemon index.js",
+    "dev:fe": "run-s \"_v -- dev --host\"",
+    "dev:be": "node index.js",
     "dev": "run-p dev:*",
     "build": "run-s \"_v -- build\"",
     "start": "node index.js"

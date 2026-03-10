@@ -39,9 +39,13 @@ const app = express();
 app.use(express.static(paths.npmRoot("static")));
 app.use(express.static(paths.npmRoot("dist")));
 app.use(express.static(paths.data.admin("static")));
-app.get("/api/test", async (req, res) => {
-  const data = await build();
-  res.json({ ok: true, data });
+app.get("/api/build", async (_req, res) => {
+  try {
+    build.startBuild();
+    return res.json({ ok: true, status: build.getStatus() });
+  } catch (error) {
+    return res.json({ error });
+  }
 });
 app.get("/api/status", async (req, res) => {
   const session = await getIronSession(req, res, sessionConfig);
@@ -76,6 +80,7 @@ app.get("/api/status", async (req, res) => {
     eventIdentMasks: spec.eventIdentMasks,
     events: resEvents,
     user: session.user,
+    build: build.getStatus(),
   });
 });
 app.get("/api/oauth", async (req, res) => {

@@ -8,10 +8,11 @@ import {
 import cn from "classnames";
 import consts from "#lib/consts";
 import { FaUsersGear, FaFileCircleCheck, FaCircleXmark } from "react-icons/fa6";
-import { FaCheckCircle } from "react-icons/fa";
+import { FaCheckCircle, FaClock } from "react-icons/fa";
 import { LuCalendarCog } from "react-icons/lu";
 import { ImStatsDots } from "react-icons/im";
 import { MdAdminPanelSettings } from "react-icons/md";
+import { IoBuild } from "react-icons/io5";
 
 const XContext = createContext();
 const useX = () => useContext(XContext);
@@ -34,20 +35,23 @@ if (urlIdent) {
 }
 const initialIdent = localStorage.getItem("authedIdent");
 
+function toDateStr(ts, isT) {
+  const optsT = {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  };
+  const optsD = { month: "2-digit", day: "2-digit" };
+  return new Intl.DateTimeFormat("en-US", isT ? optsT : optsD).format(ts);
+}
+
 function eventsList(X) {
   return (
     <div className="flex flex-col">
       {Object.values(X.specEvents).map((event, ind) => {
-        const opts = { month: "2-digit", day: "2-digit" };
-        const dateStr = new Intl.DateTimeFormat("en-US", opts).format(
-          event.date * 1000,
-        );
+        const dateStr = toDateStr(event.date * 1000);
         const isOdd = ind % 2 === 1;
-        console.log(
-          event.tournamentName,
-          X.isPrEligible(event),
-          X.isEligibilityToggled(event),
-        );
         return (
           <div
             key={event.id}
@@ -134,10 +138,26 @@ function eventsList(X) {
 // "card rounded-md shadow-md ml-4 shadow-neutral/30",
 // "border-1 border-gray-200 dark:border-gray-800",
 function FullApp() {
+  const [openBuildModal, setOpenBuildModal] = useState(false);
+  const [startBuildError, setStartBuildError] = useState();
+
   const [_tab, setTab] = useState();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const tab = new Set(["players", "season"]).has(_tab) ? _tab : "season";
   const X = useX();
+
+  const startBuild = () => {
+    fetch("/api/build")
+      .then((res) => res.json())
+      .then(({ status }) => {
+        X.setBuild(status);
+        X.reload();
+      })
+      .catch(() => {
+        setStartBuildError("unknown network error");
+      });
+  };
+
   const authedIdent = !X.hasLoaded ? initialIdent : X.userIdent;
   const isAuthed = Boolean(X.hasLoaded && authedIdent);
   const isUnauthed = Boolean(X.hasLoaded && !authedIdent);
@@ -189,7 +209,6 @@ function FullApp() {
         </a>
       );
     }
-    console.log("loaders...");
     return (
       <div className="flex flex-col gap-2 p-8">
         <div className="skeleton h-6 w-48" />
@@ -292,7 +311,7 @@ function FullApp() {
         <div
           {...Cn(
             "absolute z-20 w-full bottom-[2px] h-10 bg-base-200 border-t-2 border-base-300 shadow-sm",
-            "animate animate-once animate-fade-up flex items-center px-4",
+            "animate animate-once animate-fade-up flex items-center px-4 justify-between",
             { hidden: !authedIdent },
           )}
         >
@@ -326,22 +345,167 @@ function FullApp() {
               </span>
             </button>
           </div>
+          <div className={cn("flex gap-2 items-center", { hidden: !X.build })}>
+            {!startBuildError ? null : (
+              <div className="text-error">{startBuildError}</div>
+            )}
+            {!X.build || !X.build.lastHash ? null : (
+              <a
+                href={`https://github.com/clm-stats/clm-stats.github.io/#${X.build.lastHash}`}
+                className="btn btn-link link"
+              >
+                #{X.build.lastHash}
+              </a>
+            )}
+            {!X.build || !X.build.lastFinish ? null : (
+              <div className="text-sm text-info inline-flex items-center">
+                <FaClock /> &nbsp; {toDateStr(X.build.lastFinish, true)}
+                &nbsp; &nbsp;
+                <FaCheckCircle className="text-success" />
+                &nbsp;
+              </div>
+            )}
+            <button
+              className={cn(
+                "badge badge-sm text-md badge-soft",
+                "leading-none self-center cursor-pointer hover:badge-primary",
+                "transition transition-colors duration-300 p-4 m-0",
+                {
+                  "badge-accent": X.canBuild,
+                  "badge-warning": X.isBuilding,
+                  "badge-error": X.buildError,
+                  "badge-success opacity-70 pointer-events-none":
+                    !X.canBuild && !X.isBuilding && !X.buildError,
+                },
+              )}
+              onClick={() => {
+                if (X.canBuild) {
+                  startBuild();
+                }
+                setOpenBuildModal(true);
+              }}
+            >
+              <span>
+                {(() => {
+                  if (X.canBuild) {
+                    return "Start Build";
+                  } else if (X.isBuilding) {
+                    return (
+                      <span className="inline-flex">
+                        <IoBuild /> &nbsp; In Progress...
+                      </span>
+                    );
+                  } else if (X.buildError) {
+                    return "Build Error";
+                  } else {
+                    return (
+                      <span className="inline-flex">
+                        <FaCheckCircle /> &nbsp; cooldown
+                      </span>
+                    );
+                  }
+                })()}
+              </span>
+            </button>
+          </div>
         </div>
+      </div>
+
+      <input
+        type="checkbox"
+        className="modal-toggle"
+        checked={openBuildModal}
+      />
+      <div className="modal" role="dialog">
+        {!X.build ? null : (
+          <div className="modal-box p-4">
+            <h3 className="text-lg font-bold inline-flex items-center">
+              Build Status &nbsp;
+              {(() => {
+                if (X.isBuilding) {
+                  return <IoBuild className="animate animate-pulse" />;
+                } else if (!X.buildError) {
+                  return <FaCheckCircle className="text-success" />;
+                } else {
+                  return <FaCircleXmark className="text-error" />;
+                }
+              })()}
+            </h3>
+            <div className="pt-4">
+              <div className="bg-base-300 border-1 border-black rounded-sm flex flex-col">
+                <div
+                  key="header"
+                  className={cn(
+                    "text-sm font-mono font-bold py-1 bg-info/10 text-center",
+                  )}
+                >
+                  Build Command Log
+                </div>
+                {X.build.io.map((line, ind) => (
+                  <div
+                    key={ind}
+                    className={cn(
+                      "text-sm font-mono",
+                      "border-t-1 border-black py-1",
+                    )}
+                  >
+                    <span className="opacity-50">&nbsp;{ind}</span>&nbsp;{line}
+                  </div>
+                ))}
+                {!X.buildError ? null : (
+                  <div
+                    key="error"
+                    className={cn(
+                      "animate animate-once animate-fade-up text-sm font-mono",
+                      "border-b-1 border-black py-1",
+                    )}
+                  >
+                    error {JSON.stringify(X.buildError)}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="modal-action mt-4 ">
+              <div className="join">
+                <button
+                  className={cn("join-item btn btn-accent btn-soft", {
+                    "btn-disabled": !X.canBuild,
+                  })}
+                >
+                  {X.canBuild
+                    ? "Start Build"
+                    : X.isBuilding
+                      ? "in progress..."
+                      : "wait 5 mins before next build"}
+                </button>
+                <label
+                  onClick={() => setOpenBuildModal(false)}
+                  className="btn join-item btn-soft"
+                >
+                  <FaCircleXmark />
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
+let refreshCount = 1;
+
 export default class App extends Component {
   constructor(props) {
     super(props);
-    this.state = { refreshCount: 1 };
+    this.state = { refreshCount };
     this.isLoading = true;
     this.eventEligibilityToggles = new Set([]);
   }
 
   refresh() {
-    this.setState({ refreshCount: this.state.refreshCount + 1 });
+    refreshCount++;
+    this.setState({ refreshCount });
   }
 
   handleStatus(status) {
@@ -353,6 +517,7 @@ export default class App extends Component {
   fetchStatus(logout = false) {
     const shouldRefresh = !this.isLoading;
     this.isLoading = true;
+    this.lastRequest = Date.now();
     fetch(`/api/status${logout ? "?logout=1" : ""}`)
       .then((res) => res.json())
       .then((status) => this.handleStatus(status))
@@ -364,6 +529,14 @@ export default class App extends Component {
 
   componentDidMount() {
     this.fetchStatus();
+    window.setInterval(() => {
+      const delta = Date.now() - this.lastRequest;
+      if (this.build && this.build.isBuilding && delta > 2000) {
+        this.fetchStatus();
+      } else if (delta > 15000) {
+        this.fetchStatus();
+      }
+    }, 500);
   }
 
   get hasLoaded() {
@@ -394,18 +567,37 @@ export default class App extends Component {
     return this.onStatus((s) => s.events) || {};
   }
 
+  get build() {
+    return this.onStatus((s) => s.build);
+  }
+
+  setBuild(buildStatus) {
+    this.onStatus((s) => {
+      s.build = buildStatus;
+      this.refresh();
+    });
+  }
+
+  get canBuild() {
+    return this.build ? this.build.canBuild : false;
+  }
+
+  get isBuilding() {
+    return this.build ? this.build.isBuilding : false;
+  }
+
+  get buildError() {
+    return this.build ? this.build.error : null;
+  }
+
   isEligibilityToggled(event) {
-    console.log("toggles", [...this.eventEligibilityToggles]);
     return this.eventEligibilityToggles.has(event.id);
   }
 
   toggleEligibility(event) {
-    console.log("TOGGLING EVENT ELIGIBILITY");
     if (this.isEligibilityToggled(event)) {
-      console.log("deleting...");
       this.eventEligibilityToggles.delete(event.id);
     } else {
-      console.log("adding...");
       this.eventEligibilityToggles.add(event.id);
     }
     this.refresh();
@@ -421,7 +613,13 @@ export default class App extends Component {
        lastBuildTime: int,
      }
      */
+    console.log(this.build);
     const contextVal = {
+      build: this.build,
+      setBuild: (buildStatus) => this.setBuild(buildStatus),
+      canBuild: this.canBuild,
+      isBuilding: this.isBuilding,
+      buildError: this.buildError,
       isLoading: this.isLoading,
       hasLoaded: this.hasLoaded,
       user: this.user,
