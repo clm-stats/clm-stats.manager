@@ -118,7 +118,15 @@ app.get("/api/oauth", async (req, res) => {
   const discordName = identity.global_name || identity.username;
   session.user = { discordName, discordId: identity.id, ident: adminIdent };
   await session.save();
-  res.redirect(`/?authedIdent=${adminIdent}`);
+  res.send(`<div>
+    login complete... redirecting back to clm stats in 3s...
+    <script>
+       window.setTimeout(function() {
+         window.location = "https://clm.public-universal-domain.org/?authedIdent=${adminIdent}";
+}, 3000)
+</script>
+</div>
+`);
 });
 app.listen(consts.PORT, (err) => {
   if (err) {
