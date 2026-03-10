@@ -60,6 +60,10 @@ app.get("/api/status", async (req, res) => {
     res.json({});
     return;
   }
+  const buildStatus = build.getStatus();
+  if (buildStatus.isBuilding) {
+    return res.json({ user: session.user, build: buildStatus });
+  }
   const { actions, spec } = await buildSpec();
   const events = await fetchGGEvents(spec.eventSlugs);
   const D = await buildFullData(await buildLegacyData(), events, spec, actions);
@@ -79,8 +83,8 @@ app.get("/api/status", async (req, res) => {
     identMasks: spec.identMasks,
     eventIdentMasks: spec.eventIdentMasks,
     events: resEvents,
+    build: buildStatus,
     user: session.user,
-    build: build.getStatus(),
   });
 });
 app.get("/api/oauth", async (req, res) => {

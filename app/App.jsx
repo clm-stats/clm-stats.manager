@@ -138,13 +138,16 @@ function eventsList(X) {
 // "card rounded-md shadow-md ml-4 shadow-neutral/30",
 // "border-1 border-gray-200 dark:border-gray-800",
 function FullApp() {
-  const [openBuildModal, setOpenBuildModal] = useState(false);
+  const [openBuildModal, _setOpenBuildModal] = useState(false);
   const [startBuildError, setStartBuildError] = useState();
 
   const [_tab, setTab] = useState();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const tab = new Set(["players", "season"]).has(_tab) ? _tab : "season";
   const X = useX();
+  const setOpenBuildModal = (arg) => _setOpenBuildModal(X.isBuilding || arg);
+
+  useEffect(() => X.isBuilding && setOpenBuildModal(true), [X.isBuilding]);
 
   const startBuild = () => {
     fetch("/api/build")
@@ -441,28 +444,31 @@ function FullApp() {
                 >
                   Build Command Log
                 </div>
-                {X.build.io.map((line, ind) => (
-                  <div
-                    key={ind}
-                    className={cn(
-                      "text-sm font-mono",
-                      "border-t-1 border-black py-1",
-                    )}
-                  >
-                    <span className="opacity-50">&nbsp;{ind}</span>&nbsp;{line}
-                  </div>
-                ))}
-                {!X.buildError ? null : (
-                  <div
-                    key="error"
-                    className={cn(
-                      "animate animate-once animate-fade-up text-sm font-mono",
-                      "border-b-1 border-black py-1",
-                    )}
-                  >
-                    error {JSON.stringify(X.buildError)}
-                  </div>
-                )}
+                <div className="flex flex-col overflow-scroll max-h-[calc(100vh_-_14rem)]">
+                  {X.build.io.map((line, ind) => (
+                    <div
+                      key={ind}
+                      className={cn(
+                        "text-sm font-mono",
+                        "border-t-1 border-black py-1",
+                      )}
+                    >
+                      <span className="opacity-50">&nbsp;{ind}</span>&nbsp;
+                      {line}
+                    </div>
+                  ))}
+                  {!X.buildError ? null : (
+                    <div
+                      key="error"
+                      className={cn(
+                        "animate animate-once animate-fade-up text-sm font-mono",
+                        "border-b-1 border-black py-1",
+                      )}
+                    >
+                      error {JSON.stringify(X.buildError)}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <div className="modal-action mt-4 ">
@@ -480,7 +486,9 @@ function FullApp() {
                 </button>
                 <label
                   onClick={() => setOpenBuildModal(false)}
-                  className="btn join-item btn-soft"
+                  className={cn("btn join-item btn-soft", {
+                    "btn-disabled": X.isBuilding,
+                  })}
                 >
                   <FaCircleXmark />
                 </label>
@@ -510,7 +518,15 @@ export default class App extends Component {
 
   handleStatus(status) {
     this.isLoading = false;
-    this.fetchedStatus = [status];
+    if (
+      !this.fetchedStatus ||
+      !status ||
+      (this.fetchStatus && !this.fetchStatus[0])
+    ) {
+      this.fetchedStatus = [status];
+    } else {
+      Object.assign(this.fetchStatus[0], status);
+    }
     this.refresh();
   }
 
