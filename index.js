@@ -69,6 +69,9 @@ app.get("/api/status", async (req, res) => {
   const D = await buildFullData(await buildLegacyData(), events, spec, actions);
   const resEvents = {};
   for (const slug of spec.eventSlugs) {
+    if (!events[slug]) {
+      continue;
+    }
     resEvents[slug] = events[slug];
     resEvents[slug].prEligible = true;
   }
@@ -96,7 +99,6 @@ app.get("/api/oauth", async (req, res) => {
   });
   const baseUrl = "https://discord.com";
   const fetchUrl = `${baseUrl}/api/oauth2/token`;
-  console.log(" __  FETCH  __");
   const { access_token } = await fetch(fetchUrl, {
     body,
     method: "POST",
