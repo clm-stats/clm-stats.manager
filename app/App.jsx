@@ -235,7 +235,7 @@ function FullApp() {
     <div className="bg-base-300 relative">
       <div
         {...Cn(
-          "container rounded-none min-h-screen mx-auto card relative",
+          "container rounded-none min-h-screen max-h-screen overflow-scroll mx-auto card relative",
           "bg-base-200 shadow-xl mx-4 my-0",
         )}
       >
@@ -313,7 +313,7 @@ function FullApp() {
         <div {...Cn("mt-22 mb-16 flex flex-col flex-1 relative")}>{body}</div>
         <div
           {...Cn(
-            "absolute z-20 w-full bottom-[2px] h-10 bg-base-200 border-t-2 border-base-300 shadow-sm",
+            "absolute z-20 w-full top-[calc(100vh_-_2.5rem_-_2px)] h-10 bg-base-200 border-t-2 border-base-300 shadow-sm",
             "animate animate-once animate-fade-up flex items-center px-4 justify-between",
             { hidden: !authedIdent },
           )}
@@ -421,7 +421,7 @@ function FullApp() {
         checked={openBuildModal}
       />
       <div className="modal" role="dialog">
-        {!X.build ? null : (
+        {!X.build || !openBuildModal ? null : (
           <div className="modal-box p-4">
             <h3 className="text-lg font-bold inline-flex items-center">
               Build Status &nbsp;
