@@ -39,6 +39,7 @@ const app = express();
 app.use(express.static(paths.npmRoot("static")));
 app.use(express.static(paths.npmRoot("dist")));
 app.use(express.static(paths.data.admin("static")));
+app.get("/checkhealth", (_req, res) => res.json({ ok: true }));
 app.get("/api/build", async (_req, res) => {
   try {
     build.startBuild();
@@ -65,7 +66,7 @@ app.get("/api/status", async (req, res) => {
     return res.json({ user: session.user, build: buildStatus });
   }
   const { actions, spec } = await buildSpec();
-  const events = await fetchGGEvents(spec.eventSlugs);
+  const events = await fetchGGEvents(spec);
   const D = await buildFullData(await buildLegacyData(), events, spec, actions);
   const resEvents = {};
   for (const slug of spec.eventSlugs) {
