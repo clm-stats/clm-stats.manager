@@ -115,10 +115,10 @@ app.get("/api/oauth", async (req, res) => {
     },
   }).then((res) => res.json());
   const adminIdent = consts.getAdminIdent(identity.id);
+  const discordName = identity.global_name || identity.username;
   if (!adminIdent) {
     throw new HttpErrorUnauthorized(`${discordName} is not an admin`);
   }
-  const discordName = identity.global_name || identity.username;
   session.user = { discordName, discordId: identity.id, ident: adminIdent };
   await session.save();
   res.send(`<div>
