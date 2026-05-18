@@ -33,6 +33,7 @@
     "#lib/*": "./lib/*.js"
   },
   "dependencies": {
+    "@dz/-": "github:mitchdzugan/dz__DOLLAR_SIGN__.ts",
     "@preact/preset-vite": "^2.10.3",
     "@tailwindcss/postcss": "^4.2.1",
     "classnames": "^2.5.1",
@@ -60,6 +61,8 @@
     "tailwindcss": "^4.2.1",
     "tailwindcss-animated": "^2.0.0",
     "terser": "^5.46.0",
+    "tsx": "^4.22.2",
+    "typescript": "^6.0.3",
     "vite": "^7.3.1",
     "whr": "^0.3.2"
   }

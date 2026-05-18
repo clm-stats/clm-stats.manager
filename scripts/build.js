@@ -6,6 +6,7 @@ const optionDefinitions = [
   { name: "add-event", alias: "e", lazyMultiple: true, type: String },
   { name: "bust-cache", alias: "b", lazyMultiple: true, type: String },
   { name: "stop-fetching", alias: "s", lazyMultiple: true, type: String },
+  { name: "set-current-period", alias: "p", type: Number },
 ];
 
 const options = commandLineArgs(optionDefinitions);
@@ -18,6 +19,8 @@ async function main() {
       return vals.map((slug) => A.BustGQLCacheForEvent(slug));
     } else if (opt === "stop-fetching") {
       return vals.map((slug) => A.SetDoneUpdating(slug));
+    } else if (opt === "set-current-period") {
+      return [A.SetCurrentPeriodId(vals)];
     }
     return [];
   });
