@@ -33,7 +33,8 @@
     "#lib/*": "./lib/*.js"
   },
   "dependencies": {
-    "@dz/-": "github:mitchdzugan/dz__DOLLAR_SIGN__.ts",
+    "@dz/-": "github:mitchdzugan/dz__DOLLAR_SIGN__.ts#add-more-stuff",
+    "@dz/h2hRanking": "file:../h2hRanking",
     "@preact/preset-vite": "^2.10.3",
     "@tailwindcss/postcss": "^4.2.1",
     "classnames": "^2.5.1",
@@ -51,6 +52,7 @@
     "mkdirp": "^3.0.1",
     "npm-run-all": "^4.1.5",
     "postcss": "^8.5.8",
+    "playwright-core": "1.59.1",
     "preact": "^10.28.4",
     "preact-render-to-string": "^6.6.6",
     "react": "npm:@preact/compat",
