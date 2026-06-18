@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@dz/-": "github:mitchdzugan/dz__DOLLAR_SIGN__.ts#add-more-stuff",
-    "@dz/h2hRanking": "file:../h2hRanking",
+    "@dz/h2hRanking": "github:mitchdzugan/h2hRanking",
     "@preact/preset-vite": "^2.10.3",
     "@tailwindcss/postcss": "^4.2.1",
     "classnames": "^2.5.1",
