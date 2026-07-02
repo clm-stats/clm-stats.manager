@@ -190,7 +190,7 @@
 
 "@dz/-@github:mitchdzugan/dz__DOLLAR_SIGN__.ts#add-more-stuff":
   version "0.0.1"
-  resolved "https://codeload.github.com/mitchdzugan/dz__DOLLAR_SIGN__.ts/tar.gz/92a92e990099387794dc314a7a1260b9f0c4fca9"
+  resolved "https://codeload.github.com/mitchdzugan/dz__DOLLAR_SIGN__.ts/tar.gz/ae9e5535c92e0a98b169ff0e989cb5e34d3a742d"
   dependencies:
     "@slippi/slippi-js" "9.0.0"
     "@types/js-yaml" "^4.0.9"
@@ -211,7 +211,7 @@
 
 "@dz/h2hRanking@github:mitchdzugan/h2hRanking":
   version "1.0.0"
-  resolved "https://codeload.github.com/mitchdzugan/h2hRanking/tar.gz/5f85ff7f4a3832d5ac00b412f3989089a313616b"
+  resolved "https://codeload.github.com/mitchdzugan/h2hRanking/tar.gz/27961bfb74f41a28712941bc82d7d1cab0d0631e"
   dependencies:
     "@dz/-" "github:mitchdzugan/dz__DOLLAR_SIGN__.ts#add-more-stuff"
     challonge "^2.2.0"
