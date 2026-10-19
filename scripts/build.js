@@ -8,6 +8,7 @@ const optionDefinitions = [
   { name: "stop-fetching", alias: "s", lazyMultiple: true, type: String },
   { name: "set-event-mask", alias: "m", lazyMultiple: true, type: String },
   { name: "mark-challonge", alias: "c", lazyMultiple: true, type: String },
+  { name: "make-ineligible", alias: "i", lazyMultiple: true, type: String },
   { name: "name-override", alias: "n", lazyMultiple: true, type: String },
   { name: "set-current-period", alias: "p", type: Number },
 ];
@@ -20,6 +21,8 @@ async function main() {
       return vals.map((slug) => A.AddEvent(slug));
     } else if (opt === "mark-challonge") {
       return vals.map((slug) => A.MarkChallonge(slug));
+    } else if (opt === "make-ineligible") {
+      return vals.map((slug) => A.MakeIneligible(slug));
     } else if (opt === "name-override") {
       // `${SLUG}:${NAME}`
       return vals.map((args) => {
